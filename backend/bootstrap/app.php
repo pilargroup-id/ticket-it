@@ -6,6 +6,12 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
+// Auto-load .env.local jika ada (untuk development override)
+if (file_exists(dirname(__DIR__) . '/.env.local')) {
+    $dotenv = Dotenv\Dotenv::createMutable(dirname(__DIR__), '.env.local');
+    $dotenv->safeLoad();
+}
+
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__ . '/../routes/web.php',
@@ -14,16 +20,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Alias middleware custom kamu
-        
         $middleware->alias([
-            'admin'   => \App\Http\Middleware\AdminMiddleware::class,
-            'manager' => \App\Http\Middleware\ManagerMiddleware::class,
-            'internal.secret' => \App\Http\Middleware\InternalSecretMiddleware::class,
+            'admin'            => \App\Http\Middleware\AdminMiddleware::class,
+            'manager'          => \App\Http\Middleware\ManagerMiddleware::class,
+            'internal.secret'  => \App\Http\Middleware\InternalSecretMiddleware::class,
         ]);
 
-
-        // CORS middleware untuk API routes
         $middleware->api(prepend: [
             \Illuminate\Http\Middleware\HandleCors::class,
         ]);

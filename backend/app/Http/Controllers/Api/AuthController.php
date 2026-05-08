@@ -9,6 +9,7 @@ use App\Http\Resources\UsersResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -89,6 +90,14 @@ public function approveUser($id)
 
     public function devLogin(Request $request)
     {
+    Log::info('devLogin hit', [
+        'username' => $request->input('username'),
+        'password' => $request->input('password'),
+        'config_username' => config('services.dev.mock_username'),
+        'config_password' => config('services.dev.mock_password'),
+        'env' => app()->environment(),
+    ]);
+    
         // Hanya aktif di environment local/development
         if (app()->environment('production')) {
             return response()->json(['message' => 'Not available'], 404);
