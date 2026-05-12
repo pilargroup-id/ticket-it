@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useRef } from 'react'
 
 import BackgroundMain from './components/template/BackgroundMain.jsx'
 import DialogLoading from './components/dialog/DialogLoading.jsx'
@@ -408,6 +408,22 @@ function App() {
   const [usersPageSize, setUsersPageSize] = useState(DEFAULT_USERS_PAGE_SIZE)
   const [activeActionDialog, setActiveActionDialog] = useState(null)
   const [selectedUser, setSelectedUser] = useState(null)
+  const [isTransitioning, setIsTransitioning] = useState(false)
+  const isInitialMount = useRef(true)
+
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+      return
+    }
+
+    setIsTransitioning(true)
+    const timeout = setTimeout(() => {
+      setIsTransitioning(false)
+    }, 800)
+
+    return () => clearTimeout(timeout)
+  }, [activePath])
 
   useEffect(() => {
     async function initAuth() {
@@ -870,7 +886,7 @@ function App() {
         </main>
       </div>
 
-      {isPageLoading ? (
+      {isPageLoading || isTransitioning ? (
         <DialogLoading
           eyebrow={activeLoadingCopy.eyebrow}
           pageName={activePage?.title ?? 'Workspace'}

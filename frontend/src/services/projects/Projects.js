@@ -102,6 +102,20 @@ function getLatestProjectPriority(project = {}) {
   return getFirstFilledText(project?.priority, project?.latest_priority)
 }
 
+function getLatestProjectDescription(project = {}) {
+  const details = Array.isArray(project?.details) ? project.details : []
+
+  for (let index = details.length - 1; index >= 0; index -= 1) {
+    const detailDescription = getFirstFilledText(details[index]?.description)
+
+    if (detailDescription) {
+      return detailDescription
+    }
+  }
+
+  return getFirstFilledText(project?.description) || '-'
+}
+
 function getProjectHistoryTimestamp(history = {}) {
   return history?.progress_date || history?.created_at || history?.updated_at || null
 }
@@ -180,7 +194,7 @@ export function formatProjectProgress(progress) {
 
 export function normalizeProject(project = {}) {
   const projectCode = getFirstFilledText(project?.project_code, project?.code, project?.id)
-  const projectName = getFirstFilledText(project?.title, project?.name)
+  const projectName = getFirstFilledText(project?.project_name, project?.title, project?.name)
   const requestorName = getFirstFilledText(project?.requestor_name, project?.requestor?.name)
   const rawStatus = String(project?.status || '').trim().toLowerCase()
   const rawPriority = getLatestProjectPriority(project)
@@ -213,6 +227,7 @@ export function normalizeProject(project = {}) {
     startDateValue,
     endDate: formatProjectDate(endDateValue),
     endDateValue,
+    description: getLatestProjectDescription(project),
     actualStartDate: formatProjectDateTime(actualStartDateValue),
     actualStartDateValue,
     actualEndDate: formatProjectDateTime(actualEndDateValue),

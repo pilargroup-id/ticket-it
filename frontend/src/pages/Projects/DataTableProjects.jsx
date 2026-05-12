@@ -4,7 +4,7 @@ import DataTable, {
   DataTableIdentity,
   DataTableStatus,
 } from '../../components/table/DataTable.jsx'
-import TimeLineMT from '../../components/timeline/TimeLineMT.jsx'
+import TimeLineMT from '../../components/timeline/TimeLineProject.jsx'
 import {
   DEFAULT_PAGE_SIZE,
   EMPTY_DATE_RANGE,
@@ -33,9 +33,15 @@ const columns = [
     cellStyle: { minWidth: '260px' },
   },
   {
+    key: 'requestDate',
+    header: 'Request Date',
+    accessor: 'requestDate',
+    cellStyle: { minWidth: '130px' },
+  },
+  {
     key: 'requestor',
     header: 'Requestor',
-    cellStyle: { minWidth: '220px' },
+    cellStyle: { minWidth: '150px' },
     render: (project) =>
       project.requestor && project.requestor !== '-'
         ? <DataTableIdentity title={project.requestor} />
@@ -57,12 +63,12 @@ const columns = [
     key: 'description',
     header: 'Description',
     accessor: 'description',
-    cellStyle: { whiteSpace: 'nowrap', width: '9%' },
+    cellStyle: { minWidth: '260px' },
   },
   {
     key: 'status',
     header: 'Status',
-    cellStyle: { whiteSpace: 'nowrap', width: '12%' },
+    cellStyle: { whiteSpace: 'nowrap', width: '10%' },
     render: (project) => (
       <DataTableStatus inline variant={getStatusVariant(project.status)}>
         {project.status}
@@ -97,7 +103,13 @@ function ProjectHistoryPanel({ project }) {
           return
         }
 
-        setHistoryItems(response.data)
+        const sortedData = [...(response.data || [])].sort((a, b) => {
+          const dateA = new Date(a.timestamp || a.created_at || a.createdAt || 0).getTime()
+          const dateB = new Date(b.timestamp || b.created_at || b.createdAt || 0).getTime()
+          return dateB - dateA
+        })
+
+        setHistoryItems(sortedData)
       } catch (error) {
         if (!isMounted) {
           return
@@ -124,47 +136,6 @@ function ProjectHistoryPanel({ project }) {
       <div className="users-table__detail-section-header">
         <p className="users-table__detail-section-eyebrow">History</p>
       </div>
-
-      <p className="mtickets-table__detail-copy">
-        Riwayat status project diambil dari endpoint history saat detail dibuka.
-      </p>
-
-      <div className="mtickets-table__detail-summary">
-        <div className="mtickets-table__detail-item">
-          <p className="mtickets-table__detail-label">Name</p>
-          <p className="mtickets-table__detail-value">{project.projectName}</p>
-        </div>
-
-        <div className="mtickets-table__detail-item">
-          <p className="mtickets-table__detail-label">Requestor</p>
-          <p className="mtickets-table__detail-value">{project.requestor}</p>
-        </div>
-
-        <div className="mtickets-table__detail-item">
-          <p className="mtickets-table__detail-label">Priority</p>
-          <p className="mtickets-table__detail-value">{project.priority}</p>
-        </div>
-
-        <div className="mtickets-table__detail-item">
-          <p className="mtickets-table__detail-label">Progress</p>
-          <p className="mtickets-table__detail-value">{project.progress}</p>
-        </div>
-
-        <div className="mtickets-table__detail-item">
-          <p className="mtickets-table__detail-label">Status</p>
-          <div className="mtickets-table__detail-value">
-            <DataTableStatus inline variant={getStatusVariant(project.status)}>
-              {project.status}
-            </DataTableStatus>
-          </div>
-        </div>
-
-        <div className="mtickets-table__detail-item">
-          <p className="mtickets-table__detail-label">Request Date</p>
-          <p className="mtickets-table__detail-value">{project.requestDate}</p>
-        </div>
-      </div>
-
       {isLoadingHistory ? (
         <p className="mtickets-timeline__empty">Memuat riwayat project...</p>
       ) : historyError ? (
@@ -243,8 +214,8 @@ function DataTableProjects({
           columnLabel: 'Actions',
           buttonLabel: 'Detail',
           eyebrow: 'Project',
-          title: (project) => project.projectCode,
-          description: (project) => project.projectName,
+          title: (project) => [project.projectCode, project.projectName].filter(Boolean).join(' - '),
+          description: () => null,
           render: (project) => <ProjectHistoryPanel project={project} />,
         }}
         emptyMessage={emptyMessage}
