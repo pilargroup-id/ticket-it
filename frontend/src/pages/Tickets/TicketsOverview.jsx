@@ -93,7 +93,7 @@ function TicketsOverview({ activePage, searchQuery, onLoadingChange }) {
     }
   }, [dateRange.endDate, dateRange.startDate, ticketRefreshVersion])
 
-  const isPageLoading = isLoadingTickets
+  const isPageLoading = isLoadingTickets && ticketRows.length === 0 && !ticketsError
 
   useEffect(() => {
     onLoadingChange?.(isPageLoading)
@@ -103,7 +103,7 @@ function TicketsOverview({ activePage, searchQuery, onLoadingChange }) {
     }
   }, [isPageLoading, onLoadingChange])
 
-  if (isPageLoading && ticketRows.length === 0) {
+  if (isPageLoading) {
     return null
   }
 

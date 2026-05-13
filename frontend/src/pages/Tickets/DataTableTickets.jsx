@@ -2,8 +2,10 @@ import { useEffect, useMemo, useState } from 'react'
 
 import DialogVoidTickets from '../../components/dialog/DialogVoidTickets.jsx'
 import DialogExecutionTicket from '../../components/dialog/DialogExecutionTicket.jsx'
-import DataTableAction, { DataTableStatus } from '../../components/table/DataTableAction.jsx'
+import DataTable, { DataTableIdentity, DataTableStatus } from '../../components/table/DataTable.jsx'
 import { Play, XClose } from '../../components/template/TemplateIcons.jsx'
+import ButtonExecutionTickets from '../../components/button/ButtonExecutionTickets.jsx'
+import ButtonVoidTickets from '../../components/button/ButtonVoidTickets.jsx'
 import {
   DEFAULT_PAGE_SIZE,
   EMPTY_DATE_RANGE,
@@ -15,29 +17,42 @@ import {
   getTicketEmptyMessage,
   getTicketPageRows,
   getTicketPaginationSummary,
-  getTicketTableActions,
 } from '../../services/my-tickets/DataTableMT.js'
+
+import { formatTicketDate, formatTicketTimeWIB, getFeedbacks } from '../../services/tickets/Tickets.js'
+import FeedbackRating from '../../components/rating/RatingFeedBack.jsx'
 
 export const INITIAL_TICKET_ROWS = DEFAULT_TICKET_ROWS
 
 const columns = [
   {
-    key: 'userName',
-    header: 'username',
-    accessor: 'userName',
-    cellStyle: { minWidth: '180px' },
+    key: 'namaPembuat',
+    header: 'nama pembuat',
+    accessor: 'namaPembuat',
+    cellStyle: { minWidth: '170px' },
+    render: (ticket) =>
+      ticket.requestor && ticket.requestor !== '-'
+        ? <DataTableIdentity title={ticket.requestor} />
+        : '-',
   },
   {
     key: 'requestDate',
     header: 'request date',
-    accessor: 'requestDate',
-    cellStyle: { minWidth: '130x' },
+    cellStyle: { minWidth: '140px' },
+    render: (ticket) => (
+      <div className="stacked-date">
+        <div className="stacked-date__date">{formatTicketDate(ticket.requestDateValue)}</div>
+        <div className="stacked-date__time" style={{ fontSize: '0.85em', opacity: 0.8 }}>
+          {formatTicketTimeWIB(ticket.requestDateValue)}
+        </div>
+      </div>
+    ),
   },
   {
-    key: 'namaPembuat',
-    header: 'nama pembuat',
-    accessor: 'namaPembuat',
-    cellStyle: { minWidth: '180px' },
+    key: 'category',
+    header: 'category',
+    accessor: 'category',
+    cellStyle: { minWidth: '200px' },
   },
   {
     key: 'status',
@@ -50,10 +65,10 @@ const columns = [
     ),
   },
   {
-    key: 'supportName',
-    header: 'support name',
-    accessor: 'supportName',
-    cellStyle: { minWidth: '180px' },
+    key: 'problem',
+    header: 'problem',
+    accessor: 'problem',
+    cellStyle: { minWidth: '260px' },
   },
   {
     key: 'solution',
@@ -61,7 +76,73 @@ const columns = [
     accessor: 'solution',
     cellStyle: { minWidth: '260px' },
   },
+  {
+    key: 'supportName',
+    header: 'support name',
+    accessor: 'supportName',
+    cellStyle: { minWidth: '180px' },
+    render: (ticket) =>
+      ticket.supportName && ticket.supportName !== '-'
+        ? <DataTableIdentity title={ticket.supportName} />
+        : '-',
+  },
 ]
+
+function TicketFeedbackPanel({ ticket }) {
+  const [feedback, setFeedback] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadFeedback() {
+      try {
+        const data = await getFeedbacks()
+        const list = data?.list || []
+        // Use a more flexible match: check ticket_id (number/string) and ticket_code
+        const found = list.find(
+          (f) =>
+            String(f.ticket_id) === String(ticket.id) ||
+            f.ticket_code === ticket.ticketCode ||
+            f.ticket_code === ticket.id,
+        )
+        setFeedback(found)
+      } catch (error) {
+        console.error('Failed to load feedback:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    loadFeedback()
+  }, [ticket.id, ticket.ticketCode])
+
+  return (
+    <section className="users-table__detail-section users-table__detail-section--wide">
+      <div className="users-table__detail-section-header">
+        <p className="users-table__detail-section-eyebrow">Feedback</p>
+      </div>
+      {isLoading ? (
+        <p className="users-table__detail-empty">Memuat feedback...</p>
+      ) : feedback ? (
+        <div
+          className="ticket-feedback"
+          style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}
+        >
+          <div className="ticket-feedback__item" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <strong style={{ color: 'var(--template-fg-muted)' }}>Rating:</strong>{' '}
+            <FeedbackRating value={Number(feedback.rating)} />
+          </div>
+          <div className="ticket-feedback__item">
+            {/* <strong style={{ color: 'var(--template-fg-muted)' }}></strong>{' '} */}
+            <p style={{ marginTop: '0.25rem', color: 'var(--template-fg-primary)' }}>
+              {feedback.description || feedback.comment || '-'}
+            </p>
+          </div>
+        </div>
+      ) : (
+        <p className="users-table__detail-empty">Belum ada feedback untuk tiket ini.</p>
+      )}
+    </section>
+  )
+}
 
 function DataTableTickets({
   searchQuery = '',
@@ -146,18 +227,6 @@ function DataTableTickets({
     }
   }
 
-  const tableActions = getTicketTableActions({
-    onEdit: (ticket) => openActionDialog('execution', ticket),
-    onDelete: (ticket) => openActionDialog('void', ticket),
-    editKey: 'execution',
-    editLabel: 'Execution',
-    editIcon: Play,
-    editDisabled: (ticket) => ticket?.rawStatus !== 'waiting',
-    deleteKey: 'void',
-    deleteLabel: 'Void',
-    deleteIcon: XClose,
-    deleteDisabled: (ticket) => ticket?.rawStatus === 'void',
-  })
 
   useEffect(() => {
     setCurrentPage(1)
@@ -191,13 +260,53 @@ function DataTableTickets({
 
   return (
     <div className="mtickets-table-shell">
-      <DataTableAction
+      <DataTable
         className="mtickets-table"
         rows={rows}
         columns={columns}
-        actions={tableActions}
         getRowId={(ticket) => ticket.id ?? ticket.ticketCode}
         tableLabel={tableLabel}
+        detail={{
+          columnLabel: 'Action',
+          buttonLabel: 'Detail',
+          eyebrow: 'Ticket',
+          title: (ticket) => ticket.ticketCode || ticket.id,
+          description: (ticket) => ticket.problem,
+          headerActions: (ticket) => {
+            const { rawStatus } = ticket
+            const isWaiting = rawStatus === 'waiting'
+            const isVoid = rawStatus === 'void'
+            const isResolved = rawStatus === 'resolved'
+
+            if (isResolved || isVoid) return null
+
+            return (
+              <div className="users-table__accordion-actions" style={{ gap: '0.5rem' }}>
+                <ButtonExecutionTickets
+                  tone="warning"
+                  disabled={!isWaiting}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    openActionDialog('execution', ticket)
+                  }}
+                >
+                  <Play size={16} /> Execution
+                </ButtonExecutionTickets>
+                <ButtonVoidTickets
+                  tone="danger"
+                  disabled={isVoid}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    openActionDialog('void', ticket)
+                  }}
+                >
+                  <XClose size={16} /> Void
+                </ButtonVoidTickets>
+              </div>
+            )
+          },
+          render: (ticket) => <TicketFeedbackPanel ticket={ticket} />,
+        }}
         emptyMessage={emptyMessage}
         pagination={pagination}
       />

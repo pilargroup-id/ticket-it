@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import DialogDelete from '../../components/dialog/DialogDelete.jsx'
 import DialogEdit from '../../components/dialog/DialogEdit.jsx'
+import DialogFeedbackUser from '../../components/dialog/DialogFeedbackUser.jsx'
 
 import DataTable, {
   DataTableIdentity,
@@ -18,17 +18,11 @@ import {
   getTicketEmptyMessage,
   getTicketPageRows,
   getTicketPaginationSummary,
-
   getTicketTableActions,
 } from '../../services/my-tickets/DataTableMT.js'
+import { formatTicketDate, formatTicketTimeWIB } from '../../services/my-tickets/MyTickets.js'
 
 const columns = [
-  {
-    key: 'ticketCode',
-    header: 'Ticket Code',
-    accessor: 'ticketCode',
-    cellStyle: { whiteSpace: 'nowrap', width: '11%' },
-  },
   {
     key: 'category',
     header: 'Category',
@@ -36,16 +30,17 @@ const columns = [
     render: (ticket) => ticket.category || '-',
   },
   {
-    key: 'problem',
-    header: 'Problem',
-    accessor: 'problem',
-    cellStyle: { minWidth: '320px' },
-  },
-  {
     key: 'requestDate',
     header: 'Request Date',
-    accessor: 'requestDate',
-    cellStyle: { whiteSpace: 'nowrap', width: '12%' },
+    cellStyle: { whiteSpace: 'nowrap', minWidth: '140px' },
+    render: (ticket) => (
+      <div className="stacked-date">
+        <div className="stacked-date__date">{formatTicketDate(ticket.requestDateValue)}</div>
+        <div className="stacked-date__time" style={{ fontSize: '0.85em', opacity: 0.8 }}>
+          {formatTicketTimeWIB(ticket.requestDateValue)}
+        </div>
+      </div>
+    ),
   },
   {
     key: 'status',
@@ -57,11 +52,17 @@ const columns = [
       </DataTableStatus>
     ),
   },
+   {
+    key: 'problem',
+    header: 'Problem',
+    accessor: 'problem',
+    cellStyle: { minWidth: '320px' },
+  },
   {
-    key: 'priority',
-    header: 'Priority',
-    accessor: 'priority',
-    cellStyle: { whiteSpace: 'nowrap', width: '9%' },
+    key: 'solution',
+    header: 'Solution',
+    accessor: 'solution',
+    cellStyle: { minWidth: '320px' },
   },
   {
     key: 'support',
@@ -82,6 +83,7 @@ function DataTableMT({
   errorMessage = '',
   refreshVersion = 0,
   setTicketRows,
+  refreshData,
 }) {
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
@@ -113,19 +115,26 @@ function DataTableMT({
     closeActionDialog()
   }
 
-  const handleDeleteConfirm = () => {
-    if (selectedTicket?.id && typeof setTicketRows === 'function') {
+  const handleFeedbackConfirm = (result) => {
+    if (result && selectedTicket?.id && typeof setTicketRows === 'function') {
+      // Update the local state to reflect the status change if the API returns the updated ticket
       setTicketRows((currentRows) =>
-        currentRows.filter((ticket) => ticket.id !== selectedTicket.id),
+        currentRows.map((ticket) =>
+          ticket.id === selectedTicket.id
+            ? { ...ticket, status: 'Feedback', rawStatus: 'feedback' }
+            : ticket,
+        ),
       )
     }
 
+    // Refresh data to update status counts etc
+    refreshData?.()
     closeActionDialog()
   }
 
   const tableActions = getTicketTableActions({
     onEdit: (ticket) => openActionDialog('edit', ticket),
-    onDelete: (ticket) => openActionDialog('delete', ticket),
+    onFeedback: (ticket) => openActionDialog('feedback', ticket),
   })
 
   useEffect(() => {
@@ -158,24 +167,6 @@ function DataTableMT({
     ? 'Memuat data ticket...'
     : errorMessage || getTicketEmptyMessage({ searchQuery, dateRange, statusFilter })
 
-  const getTicketDetailSections = (ticket) => [
-    {
-      title: 'Informasi Ticket',
-      fields: [
-        { label: 'Requestor', value: ticket.requestor },
-        { label: 'Priority', value: ticket.priority },
-        { label: 'Category', value: ticket.category || '-' },
-      ],
-    },
-    {
-      title: 'Problem & Solution',
-      fields: [
-        { label: 'Problem', value: ticket.problem },
-        { label: 'Solution', value: ticket.solution },
-      ],
-    },
-  ]
-
   return (
     <div className="mtickets-table-shell">
       <DataTable
@@ -189,7 +180,7 @@ function DataTableMT({
           buttonLabel: 'Detail',
           eyebrow: 'Ticket Code',
           title: (ticket) => ticket.ticketCode,
-          sections: (ticket) => getTicketDetailSections(ticket),
+          hasIndicator: (ticket) => ticket.status === 'Resolved',
         }}
         actions={tableActions}
         emptyMessage={emptyMessage}
@@ -205,13 +196,13 @@ function DataTableMT({
         onConfirm={handleEditConfirm}
       />
 
-      <DialogDelete
-        isOpen={activeActionDialog === 'delete'}
-        eyebrow="Delete Ticket"
-        title={`Delete ${selectedTicketName}`}
-        user={dialogTicket}
+      <DialogFeedbackUser
+        isOpen={activeActionDialog === 'feedback'}
+        eyebrow="Feedback Ticket"
+        title={`Give Feedback for ${selectedTicketName}`}
+        ticket={selectedTicket}
         onClose={closeActionDialog}
-        onConfirm={handleDeleteConfirm}
+        onConfirm={handleFeedbackConfirm}
       />
     </div>
   )

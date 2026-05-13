@@ -336,6 +336,7 @@ function DataTable({
                           <CreateButton
                             variant="detail"
                             type="button"
+                            hasIndicator={resolveTemplateValue(detail?.hasIndicator, row, index)}
                             onClick={(event) => {
                               event.stopPropagation()
                               handleToggleRow(rowKey)
@@ -439,8 +440,9 @@ function DataTable({
                                     <CreateButton
                                       key={action.key ?? action.label}
                                       variant="accordion"
-                                      tone={action.variant === 'danger' ? 'danger' : 'default'}
+                                      tone={action.variant ?? 'default'}
                                       type="button"
+                                      hasIndicator={resolveActionValue(action.hasIndicator, row, index)}
                                       disabled={resolveActionValue(action.disabled, row, index)}
                                       onClick={(event) => {
                                         event.stopPropagation()

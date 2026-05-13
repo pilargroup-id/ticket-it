@@ -331,7 +331,7 @@ Kirim feedback untuk ticket yang sudah resolved (id = ticket id).
 ```json
 {
   "rating": 5,
-  "comment": "Terima kasih, masalah sudah teratasi!"
+  "description": "Terima kasih, masalah sudah teratasi!"
 }
 ```
 

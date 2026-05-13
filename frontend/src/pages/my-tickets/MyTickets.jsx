@@ -7,9 +7,11 @@ import { getMyTickets } from '../../services/my-tickets/MyTickets.js'
 import CardStatusMT from './CardStatusMT.jsx'
 import DataTableMT from './DataTableMT.jsx'
 import DialogCreateTicket from '../../components/dialog/DialogCreateMT.jsx'
+import DialogValidationAddFB from '../../components/dialog/DialogValidationAddFB.jsx'
 
 function MyTickets({ activePage, searchQuery, onLoadingChange }) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isValidationDialogOpen, setIsValidationDialogOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState('')
   const [ticketRows, setTicketRows] = useState(INITIAL_TICKET_ROWS)
   const [isLoadingTickets, setIsLoadingTickets] = useState(true)
@@ -91,6 +93,7 @@ function MyTickets({ activePage, searchQuery, onLoadingChange }) {
         statusCounts={statusCounts}
       />
 
+
       <section
         className="dashboard-panel users-table-card mytickets-table-card"
         aria-label="Aktivitas legal"
@@ -108,9 +111,16 @@ function MyTickets({ activePage, searchQuery, onLoadingChange }) {
             <button
               type="button"
               className="users-table-card__action"
-              onClick={() => setIsCreateDialogOpen(true)}
+              onClick={() => {
+                const hasPendingFeedback = ticketRows.some((ticket) => ticket.status === 'Resolved')
+                if (hasPendingFeedback) {
+                  setIsValidationDialogOpen(true)
+                } else {
+                  setIsCreateDialogOpen(true)
+                }
+              }}
               aria-haspopup="dialog"
-              aria-expanded={isCreateDialogOpen}
+              aria-expanded={isCreateDialogOpen || isValidationDialogOpen}
             >
               <Ticket01 size={18} aria-hidden="true" />
               <span>Create Tickets</span>
@@ -127,6 +137,7 @@ function MyTickets({ activePage, searchQuery, onLoadingChange }) {
           errorMessage={ticketsError}
           refreshVersion={ticketRefreshVersion}
           setTicketRows={setTicketRows}
+          refreshData={() => setTicketRefreshVersion((v) => v + 1)}
           tableLabel={`${activePage?.title ?? 'MyTickets'} table`}
         />
       </section>
@@ -135,6 +146,11 @@ function MyTickets({ activePage, searchQuery, onLoadingChange }) {
         isOpen={isCreateDialogOpen}
         onClose={() => setIsCreateDialogOpen(false)}
         onCreated={handleTicketCreated}
+      />
+
+      <DialogValidationAddFB
+        isOpen={isValidationDialogOpen}
+        onClose={() => setIsValidationDialogOpen(false)}
       />
     </>
   )

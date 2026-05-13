@@ -11,12 +11,16 @@ function CreateButton({
   variant = 'accordion',
   tone = 'default',
   active = false,
+  hasIndicator = false,
   type = 'button',
   ...buttonProps
 }) {
   const buttonClassName = [
     buttonClassNames[variant] ?? buttonClassNames.accordion,
     variant === 'accordion' && tone === 'danger' ? 'users-table__accordion-button--danger' : '',
+    variant === 'accordion' && tone === 'warning' ? 'users-table__accordion-button--warning' : '',
+    variant === 'detail' && hasIndicator ? 'users-table__detail-button--indicator' : '',
+    variant === 'accordion' && hasIndicator ? 'users-table__accordion-button--indicator' : '',
     variant === 'icon' && tone === 'danger' ? 'users-table__icon-button--danger' : '',
     variant === 'pagination' && active ? 'users-table-pagination__button--active' : '',
     className,

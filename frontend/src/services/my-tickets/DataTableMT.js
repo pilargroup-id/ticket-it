@@ -1,4 +1,4 @@
-import { Edit03, Trash03 } from '../../components/template/TemplateIcons.jsx'
+import { Edit03, FileText01, Trash03 } from '../../components/template/TemplateIcons.jsx'
 
 export const PAGE_SIZE_OPTIONS = [5, 10, 15]
 export const DEFAULT_PAGE_SIZE = PAGE_SIZE_OPTIONS[0]
@@ -248,19 +248,20 @@ export function getTicketEmptyMessage(filters) {
 
 export function getTicketTableActions({
   onEdit,
-  onDelete,
+  onFeedback,
   editKey = 'edit',
   editLabel = 'Edit',
   editIcon = Edit03,
   editVariant = 'default',
   editDisabled = false,
   editHidden = null,
-  deleteKey = 'delete',
-  deleteLabel = 'Delete',
-  deleteIcon = Trash03,
-  deleteVariant = 'danger',
-  deleteDisabled = false,
-  deleteHidden = null,
+  feedbackKey = 'feedback',
+  feedbackLabel = 'Feedback',
+  feedbackIcon = FileText01,
+  feedbackVariant = 'warning',
+  feedbackDisabled = false,
+  feedbackHidden = (ticket) => ticket.status !== 'Resolved',
+  feedbackHasIndicator = true,
 } = {}) {
   return [
     {
@@ -273,13 +274,14 @@ export function getTicketTableActions({
       onClick: onEdit,
     },
     {
-      key: deleteKey,
-      label: deleteLabel,
-      icon: deleteIcon,
-      variant: deleteVariant,
-      disabled: deleteDisabled,
-      hidden: deleteHidden,
-      onClick: onDelete,
+      key: feedbackKey,
+      label: feedbackLabel,
+      icon: feedbackIcon,
+      variant: feedbackVariant,
+      disabled: feedbackDisabled,
+      hidden: feedbackHidden,
+      hasIndicator: feedbackHasIndicator,
+      onClick: onFeedback,
     },
   ]
 }

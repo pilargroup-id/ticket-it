@@ -69,7 +69,19 @@ export function formatTicketDateTime(value) {
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
+    second: '2-digit',
   })
+}
+
+export function formatTicketTimeWIB(value) {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+
+  return `${hours}:${minutes} WIB`
 }
 
 export function formatTicketStatus(status) {
@@ -190,7 +202,7 @@ export function normalizeTicket(ticket = {}) {
     supportName: supportName || '-',
     solution: getFirstFilledText(ticket?.solution) || '-',
     notes: getFirstFilledText(ticket?.notes) || '-',
-    requestDate: formatTicketDate(requestDateValue),
+    requestDate: formatTicketDateTime(requestDateValue),
     requestDateValue,
     startDate: formatTicketDateTime(startDateValue),
     startDateValue,
@@ -293,6 +305,19 @@ export async function getMyTickets(options = {}) {
   }
 }
 
+export async function getFeedbacks() {
+  const response = await api.get('/feedback')
+  return response?.data ?? {}
+}
+
+export async function postFeedback(ticketId, { rating, comment }) {
+  const response = await api.post(`/user/feedback/${ticketId}`, {
+    rating,
+    description: comment,
+  })
+  return response?.data ?? {}
+}
+
 export default {
   formatTicketDate,
   formatTicketDateTime,
@@ -302,6 +327,8 @@ export default {
   getTicketStatusQueryValue,
   getTickets,
   getMyTickets,
+  getFeedbacks,
+  postFeedback,
   normalizeMyTicket,
   normalizeTicket,
   normalizeTicketStatusCounts,
