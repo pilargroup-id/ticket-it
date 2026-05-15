@@ -75,7 +75,7 @@ export default function DoughnutChartEiCategory({ filters = {} }) {
   }
 
   return (
-    <div className="team-performance-chart" style={{ width: '100%', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: '2rem', flexWrap: 'wrap' }}>
+    <div className="team-performance-chart" style={{ width: '100%', display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'flex-start', gap: '2rem', flexWrap: 'wrap' }}>
       <div 
         className="team-performance-chart__legend" 
         aria-label="Category distribution legend" 
@@ -83,8 +83,8 @@ export default function DoughnutChartEiCategory({ filters = {} }) {
           display: 'flex', 
           flexDirection: 'column', 
           gap: '0.75rem', 
-          minWidth: '200px',
-          flex: '1'
+          minWidth: '220px',
+          flex: '0 0 auto'
         }}
       >
         {legendItems.map((item) => (
@@ -113,7 +113,7 @@ export default function DoughnutChartEiCategory({ filters = {} }) {
         ))}
       </div>
 
-      <Box sx={{ flex: '2', display: 'flex', justifyContent: 'center', minWidth: '500px' }}>
+      <Box sx={{ flex: '1', display: 'flex', justifyContent: 'flex-start', minWidth: '450px' }}>
         {visibleData.length > 0 ? (
           <PieChart
             series={[

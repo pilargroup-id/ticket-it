@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 
 import { XClose } from '../template/TemplateIcons.jsx'
 import TimeLineMT from '../timeline/TimeLineMT.jsx'
+import api from '../../services/api.js'
 
 function DialogTimelineMT({
   isOpen = false,

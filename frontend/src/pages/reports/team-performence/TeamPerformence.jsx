@@ -9,7 +9,6 @@ import { FileText01 } from '../../../components/template/TemplateIcons.jsx'
 import SupportReports from '../../../services/reports/SupportReports.js'
 import SupportPerformence from './SupportPerformence.jsx'
 
-
 // Removed dummy teamMembers data
 
 function parseDateValue(value) {

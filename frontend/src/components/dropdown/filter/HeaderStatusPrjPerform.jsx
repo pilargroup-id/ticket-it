@@ -105,13 +105,14 @@ export default function HeaderStatusPrjPerform({ value, onChange }) {
           },
         }}
       >
-        <MenuItem value="">
-          <em style={{ fontStyle: 'normal', opacity: 0.6 }}>Semua Status</em>
+        <MenuItem value="all">
+          <em style={{ fontStyle: 'normal', opacity: 0.6 }}>All Status</em>
         </MenuItem>
-        <MenuItem value="On Track">On Track</MenuItem>
-        <MenuItem value="At Risk">At Risk</MenuItem>
-        <MenuItem value="Delayed">Delayed</MenuItem>
-        <MenuItem value="Completed">Completed</MenuItem>
+        <MenuItem value="waiting">Waiting</MenuItem>
+        <MenuItem value="pending">Pending</MenuItem>
+        <MenuItem value="in_progress">In Progress</MenuItem>
+        <MenuItem value="resolved">Resolved</MenuItem>
+        <MenuItem value="void">Void</MenuItem>
       </Select>
     </FormControl>
   );

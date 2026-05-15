@@ -126,51 +126,36 @@ const ProjectPerformence = () => {
 
   return (
     <div className="chart-page">
-      {/* Top Header Section */}
-      <header style={{ marginBottom: '1.5rem' }}>
-        <p className="dashboard-panel__eyebrow">Reports</p>
-        <h1 className="dashboard-panel__title" style={{ fontSize: '1.875rem', fontWeight: 800 }}>Project Performance</h1>
-        <p className="users-table-card__description">
-          Monitoring performa pengerjaan ticket berdasarkan proyek dan kategori.
-        </p>
-      </header>
-
-      {/* Filter & Export Card */}
-      <article className="dashboard-panel" style={{ 
-        marginBottom: '1.5rem', 
-        padding: '1.25rem 1.5rem', 
-        borderRadius: '16px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '1.5rem',
-        backgroundColor: '#ffffff',
-        border: '1px solid #f1f5f9',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#64748b' }}>Filters:</span>
-            <FilterYear value={year} onChange={setYear} />
-          </div>
-          <FilterStatus value={status} onChange={setStatus} />
-          <ButtonRangeDate label="Periode" onChange={setSelectedRange} />
-        </div>
-        
-        <div style={{ marginLeft: 'auto' }}>
-          <ExportPrjPerform />
-        </div>
-      </article>
-
       {/* Data Table Card */}
       <article className="dashboard-panel users-table-card">
-        <div className="users-table-card__header" style={{ paddingBottom: '0.5rem' }}>
-          <div>
+        <div className="users-table-card__header" style={{ 
+          paddingBottom: '1.25rem',
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '1.5rem'
+        }}>
+          <div style={{ flex: '1 1 300px' }}>
             <h2 className="dashboard-panel__title" style={{ fontSize: '1.25rem' }}>Performance Data</h2>
             <p className="users-table-card__description">
               Data pengerjaan ticket berdasarkan filter yang dipilih.
             </p>
+          </div>
+
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '1rem', 
+            flexWrap: 'wrap',
+            justifyContent: 'flex-end',
+            flex: '1 1 auto'
+          }}>
+            <FilterYear value={year} onChange={setYear} />
+            <FilterStatus value={status} onChange={setStatus} />
+            <ButtonRangeDate label="Periode" onChange={setSelectedRange} />
+            <div style={{ height: '32px', width: '1px', backgroundColor: '#e2e8f0', margin: '0 0.25rem' }}></div>
+            <ExportPrjPerform />
           </div>
         </div>
 

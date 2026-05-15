@@ -29,13 +29,13 @@ export default function YearPrjPerform({ value, onChange }) {
           '&.Mui-focused': { color: '#10b981' }
         }}
       >
-        Tahun
+        Year
       </InputLabel>
       <Select
         labelId={`${id}-label`}
         id={id}
         value={value ?? ''}
-        label="Tahun"
+        label="Year"
         onChange={handleChange}
         startAdornment={
           <InputAdornment position="start" sx={{ ml: 1, mr: 0.5 }}>
