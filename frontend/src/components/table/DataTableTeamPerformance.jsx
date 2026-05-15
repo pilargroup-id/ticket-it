@@ -1,141 +1,123 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import CreateButton from '../../components/button/CreateButton.jsx'
-import DialogDelete from '../../components/dialog/DialogDelete.jsx'
-import DialogEdit from '../../components/dialog/DialogEdit.jsx'
-import DialogTimelineMT from '../../components/dialog/DialogTimelineMT.jsx'
 import DataTable, {
   DataTableIdentity,
-  DataTableStatus,
 } from './DataTable.jsx'
 import {
   DEFAULT_PAGE_SIZE,
   EMPTY_DATE_RANGE,
-  INITIAL_TICKET_ROWS,
   PAGE_SIZE_OPTIONS,
-  getFilteredTicketRows,
   getPaginationItems,
-  getStatusVariant,
-  getTicketEmptyMessage,
   getTicketPageRows,
-  getTicketPaginationSummary,
-  getTicketTimelineItems,
-  getTicketTableActions,
 } from '../../services/my-tickets/DataTableMT.js'
+import ButtonDetailPrj from '../button/ButtonDetailPrj.jsx'
+import DialogTimelinePrjPerf from '../dialog/DialogTimelinePrjPerf.jsx'
 
 const columns = [
   {
-    key: 'category',
-    header: 'Category',
-    accessor: 'category',
-    cellStyle: { whiteSpace: 'nowrap', width: '10%' },
-  },
-  {
-    key: 'issue',
-    header: 'Masalah',
-    accessor: 'issue',
-    cellStyle: { minWidth: '280px' },
-  },
-  {
-    key: 'requestDate',
-    header: 'Request Date',
-    accessor: 'requestDate',
-    cellStyle: { whiteSpace: 'nowrap', width: '11%' },
-  },
-  {
-    key: 'status',
-    header: 'Status',
-    cellStyle: { whiteSpace: 'nowrap', width: '10%' },
-    render: (ticket) => (
-      <DataTableStatus inline variant={getStatusVariant(ticket.status)}>
-        {ticket.status}
-      </DataTableStatus>
-    ),
-  },
-  {
-    key: 'support',
-    header: 'Support',
+    key: 'developer',
+    header: 'Developer',
     cellStyle: { minWidth: '200px' },
-    render: (ticket) => (
-      <DataTableIdentity title={ticket.supportName} subtitle={ticket.supportRole} />
+    render: (row) => (
+      <DataTableIdentity title={row.developer_name} subtitle={`ID: ${row.developer_id}`} />
     ),
   },
   {
-    key: 'solution',
-    header: 'Solution',
-    accessor: 'solution',
-    cellStyle: { minWidth: '260px' },
+    key: 'projects_count',
+    header: 'Projects',
+    accessor: 'projects_count',
+    cellStyle: { whiteSpace: 'nowrap', textAlign: 'center', width: '10%' },
+  },
+  {
+    key: 'total_tasks',
+    header: 'Total Tasks',
+    accessor: 'total_tasks',
+    cellStyle: { whiteSpace: 'nowrap', textAlign: 'center', width: '10%' },
+  },
+  {
+    key: 'avg_progress_task',
+    header: 'Avg. Progress',
+    cellStyle: { whiteSpace: 'nowrap', textAlign: 'center', width: '12%' },
+    render: (row) => `${row.avg_progress_task}%`,
+  },
+  {
+    key: 'open_touch_count',
+    header: 'Open Touch',
+    accessor: 'open_touch_count',
+    cellStyle: { whiteSpace: 'nowrap', textAlign: 'center', width: '10%' },
+  },
+  {
+    key: 'resolved_touch_count',
+    header: 'Resolved Touch',
+    accessor: 'resolved_touch_count',
+    cellStyle: { whiteSpace: 'nowrap', textAlign: 'center', width: '10%' },
+  },
+  {
+    key: 'late_touch_count',
+    header: 'Late Touch',
+    accessor: 'late_touch_count',
+    cellStyle: { whiteSpace: 'nowrap', textAlign: 'center', width: '10%' },
   },
 ]
 
-function DataTableMT({
+function DataTableTeamPerformance({
   searchQuery = '',
-  tableLabel = 'MyTickets table',
+  tableLabel = 'Developer Project Summary table',
   dateRange = EMPTY_DATE_RANGE,
-  statusFilter = '',
-  ticketRows = INITIAL_TICKET_ROWS,
-  setTicketRows,
+  rows = [],
+  isLoading = false,
+  setRows,
 }) {
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
-  const [activeActionDialog, setActiveActionDialog] = useState(null)
-  const [selectedTicket, setSelectedTicket] = useState(null)
+  const [selectedDeveloper, setSelectedDeveloper] = useState(null)
+  const [isTimelineOpen, setIsTimelineOpen] = useState(false)
 
-  const filteredRows = useMemo(
-    () => getFilteredTicketRows(ticketRows, { searchQuery, dateRange, statusFilter }),
-    [dateRange, searchQuery, statusFilter, ticketRows],
-  )
-  const { totalPages, safeCurrentPage, rows, firstItem, lastItem } = useMemo(
+  const handleDetailClick = (row) => {
+    setSelectedDeveloper(row)
+    setIsTimelineOpen(true)
+  }
+
+  const memoizedColumns = useMemo(() => [
+    ...columns,
+    {
+      key: 'action',
+      header: 'Action',
+      cellStyle: { whiteSpace: 'nowrap', width: '1%' },
+      render: (row) => (
+        <ButtonDetailPrj 
+          variant="detail" 
+          onClick={() => handleDetailClick(row)} 
+          aria-label={`Lihat detail ${row.developer_name}`}
+        />
+      ),
+    },
+  ], [])
+
+  const filteredRows = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLowerCase()
+    if (!normalizedQuery) return rows
+
+    return rows.filter((row) =>
+      row.developer_name?.toLowerCase().includes(normalizedQuery)
+    )
+  }, [rows, searchQuery])
+
+  const { totalPages, safeCurrentPage, rows: pageRows, firstItem, lastItem } = useMemo(
     () => getTicketPageRows(filteredRows, currentPage, pageSize),
     [currentPage, filteredRows, pageSize],
   )
-  const selectedTicketName = selectedTicket?.id ?? 'ticket ini'
-  const dialogTicket = selectedTicket ? { name: selectedTicket.id } : null
-
-  const openActionDialog = (dialogType, ticket) => {
-    setSelectedTicket(ticket)
-    setActiveActionDialog(dialogType)
-  }
-
-  const closeActionDialog = () => {
-    setActiveActionDialog(null)
-    setSelectedTicket(null)
-  }
-
-  const handleEditConfirm = () => {
-    closeActionDialog()
-  }
-
-  const handleDeleteConfirm = () => {
-    if (selectedTicket?.id && typeof setTicketRows === 'function') {
-      setTicketRows((currentRows) =>
-        currentRows.filter((ticket) => ticket.id !== selectedTicket.id),
-      )
-    }
-
-    closeActionDialog()
-  }
-
-  const handleTimelineOpen = (ticket) => {
-    setSelectedTicket(ticket)
-    setActiveActionDialog('timeline')
-  }
-
-  const tableActions = getTicketTableActions({
-    onEdit: (ticket) => openActionDialog('edit', ticket),
-    onDelete: (ticket) => openActionDialog('delete', ticket),
-  })
 
   useEffect(() => {
     setCurrentPage(1)
-  }, [dateRange.endDate, dateRange.startDate, pageSize, searchQuery, statusFilter])
+  }, [pageSize, searchQuery])
 
   useEffect(() => {
     setCurrentPage((page) => Math.min(page, totalPages))
   }, [totalPages])
 
   const pagination = {
-    summary: getTicketPaginationSummary(firstItem, lastItem, filteredRows.length),
+    summary: `${firstItem}-${lastItem} dari ${filteredRows.length} developer`,
     currentPage: safeCurrentPage,
     totalPages,
     items: getPaginationItems(safeCurrentPage, totalPages),
@@ -145,8 +127,8 @@ function DataTableMT({
     pageSizeSuffix: 'baris',
     previousLabel: 'Sebelumnya',
     nextLabel: 'Berikutnya',
-    ariaLabel: 'MyTickets pagination',
-    pageSizeAriaLabel: 'Jumlah baris ticket per halaman',
+    ariaLabel: 'Developer summary pagination',
+    pageSizeAriaLabel: 'Jumlah baris per halaman',
     onPrevious: () => setCurrentPage((page) => Math.max(1, page - 1)),
     onNext: () => setCurrentPage((page) => Math.min(totalPages, page + 1)),
     onSelect: (page) => setCurrentPage(page),
@@ -157,62 +139,23 @@ function DataTableMT({
     <div className="mtickets-table-shell">
       <DataTable
         className="mtickets-table"
-        rows={rows}
-        columns={columns}
-        getRowId={(ticket) => ticket.id}
+        rows={pageRows}
+        columns={memoizedColumns}
+        getRowId={(row) => row.developer_id}
         tableLabel={tableLabel}
-        detail={{
-          columnLabel: 'Detail',
-          buttonLabel: 'Detail',
-          eyebrow: 'Ticket ID',
-          title: (ticket) => ticket.id,
-          render: (ticket) => (
-            <div className="mtickets-table__detail-actions">
-              <p className="mtickets-table__detail-copy">
-                Lihat riwayat perubahan status ticket beserta hari dan jam penanganannya.
-              </p>
-              <CreateButton
-                variant="accordion"
-                type="button"
-                onClick={() => handleTimelineOpen(ticket)}
-              >
-                Lihat Timeline
-              </CreateButton>
-            </div>
-          ),
-        }}
-        actions={tableActions}
-        emptyMessage={getTicketEmptyMessage({ searchQuery, dateRange, statusFilter })}
+        emptyMessage={isLoading ? 'Memuat data...' : 'Belum ada data untuk ditampilkan.'}
         pagination={pagination}
       />
 
-      <DialogEdit
-        isOpen={activeActionDialog === 'edit'}
-        eyebrow="Edit Ticket"
-        title={`Edit ${selectedTicketName}`}
-        user={dialogTicket}
-        onClose={closeActionDialog}
-        onConfirm={handleEditConfirm}
-      />
-
-      <DialogDelete
-        isOpen={activeActionDialog === 'delete'}
-        eyebrow="Delete Ticket"
-        title={`Delete ${selectedTicketName}`}
-        user={dialogTicket}
-        onClose={closeActionDialog}
-        onConfirm={handleDeleteConfirm}
-      />
-
-      <DialogTimelineMT
-        isOpen={activeActionDialog === 'timeline'}
-        eyebrow="Timeline Ticket"
-        title={`Timeline ${selectedTicketName}`}
-        items={selectedTicket ? getTicketTimelineItems(selectedTicket) : []}
-        onClose={closeActionDialog}
+      <DialogTimelinePrjPerf
+        isOpen={isTimelineOpen}
+        eyebrow="Developer Performance"
+        title={`Timeline ${selectedDeveloper?.developer_name || ''}`}
+        items={selectedDeveloper?.timeline || []}
+        onClose={() => setIsTimelineOpen(false)}
       />
     </div>
   )
 }
 
-export default DataTableMT
+export default DataTableTeamPerformance

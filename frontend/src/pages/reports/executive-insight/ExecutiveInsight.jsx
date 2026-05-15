@@ -3,8 +3,6 @@ import LineChartMonthly from '../../../components/chart/chart-executive-insight/
 import BarChartEI from '../../../components/chart/chart-executive-insight/BarChartTimeSpendCtr.jsx'
 import CardSLASummary from './CardSLASummary.jsx'
 import ButtonRangeDate from '../../../components/button/ButtonRangeDate.jsx'
-import ButtonExport from '../../../components/button/ButtonExport.jsx'
-import { FileText01 } from '../../../components/template/TemplateIcons.jsx'
 import DoughnutChartEiCategory from '../../../components/chart/chart-executive-insight/DoughnutChartEiCategory.jsx'
 
 export default function ExecutiveInsight() {
@@ -58,43 +56,39 @@ export default function ExecutiveInsight() {
         </article>
       </div>
 
-      {/* Filters & Export */}
-      <article className="dashboard-panel users-table-card" style={{ marginBottom: '2rem' }}>
-        <div className="users-table-card__header">
-          <div>
-            <h2 className="dashboard-panel__title">Filter & Export</h2>
-            <p className="users-table-card__description">
-              Sesuaikan periode laporan untuk memperbarui data pada SLA dan Distribusi Kategori.
-            </p>
+      {/* Executive Summary: Filter and SLA/Category Sections */}
+      <article className="dashboard-panel chart-card chart-card--wide" style={{ marginBottom: '2rem', overflow: 'visible' }}>
+        <div className="chart-card__header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '1.25rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '2rem' }}>
+          <div className="chart-card__header-copy" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+            <h2 className="dashboard-panel__title" style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>Executive Summary</h2>
+            <ButtonRangeDate label="Filter Periode" onChange={handleFilterChange} />
+          </div>
+        </div>
+
+        <div className="chart-card__body">
+          {/* SLA Summary Section - Full Width Horizontal */}
+          <div style={{ marginBottom: '2.5rem' }}>
+            <div className="chart-card__header-copy" style={{ marginBottom: '1.25rem' }}>
+              <p className="dashboard-panel__eyebrow" style={{ color: 'var(--primary-color)', fontWeight: 600 }}>Performance Metrics</p>
+              <h3 className="dashboard-panel__title" style={{ fontSize: '1.2rem' }}>SLA Achievement Overview</h3>
+            </div>
+            <CardSLASummary filters={filters} />
           </div>
 
-          <div className="users-table-card__actions">
-            <ButtonRangeDate label="Periode" onChange={handleFilterChange} />
-            <ButtonExport variant="action" aria-label="Export executive insight report">
-              <FileText01 size={18} aria-hidden="true" />
-              <span>Export</span>
-            </ButtonExport>
+          {/* Tickets by Category Section - Below SLA */}
+          <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '2.5rem' }}>
+            <div className="chart-card__header-copy" style={{ marginBottom: '1.5rem', textAlign: 'left' }}>
+              <p className="dashboard-panel__eyebrow" style={{ color: 'var(--primary-color)', fontWeight: 600 }}>Volume Distribution</p>
+              <h3 className="dashboard-panel__title" style={{ fontSize: '1.2rem' }}>Tickets by Category</h3>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', minHeight: '380px' }}>
+              <div style={{ width: '100%' }}>
+                <DoughnutChartEiCategory filters={filters} />
+              </div>
+            </div>
           </div>
         </div>
       </article>
-
-      {/* 3. SLA Summary */}
-      <CardSLASummary filters={filters} />
-
-      <div className="chart-grid">
-        {/* 4. Tickets by Category */}
-        <article className="dashboard-panel chart-card chart-card--wide" style={{ overflow: 'visible' }}>
-          <div className="chart-card__header">
-            <div className="chart-card__header-copy">
-              <p className="dashboard-panel__eyebrow">Category Distribution</p>
-              <h2 className="dashboard-panel__title">Tickets by Category</h2>
-            </div>
-          </div>
-          <div className="chart-card__body" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
-            <DoughnutChartEiCategory filters={filters} />
-          </div>
-        </article>
-      </div>
     </section>
   )
 }

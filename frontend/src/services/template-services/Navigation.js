@@ -18,6 +18,7 @@ export const implementedNavigationPaths = [
   '/Reports',
   '/Reports/TeamPerformance',
   '/Reports/ExecutiveInsights',
+  '/Reports/ProjectPerformance',
   '/Table',
   '/TableActions',
   '/users',
@@ -58,6 +59,11 @@ export const primaryNavigationItems = [
         id : 'executive-insight',
         label: 'Executive Insight',
         href: '/Reports/ExecutiveInsights',
+      },
+      {
+        id: 'project-performance',
+        label: 'Project Performance',
+        href: '/Reports/ProjectPerformance',
       }
     ]
   },

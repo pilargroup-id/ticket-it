@@ -20,7 +20,10 @@ export default function DoughnutChartEiCategory({ filters = {} }) {
         // Expecting data in format: [{ label: 'Category A', value: 10 }, ...]
         const formattedData = (res.data || []).map((item, index) => ({
           ...item,
-          id: item.label,
+          // API returns category object with name, fallback to other common fields
+          label: item.category?.name || item.category_name || item.label || `Category ${index + 1}`,
+          value: Number(item.count || item.value || 0),
+          id: item.category_id || item.id || `cat-${index}`,
           color: palette[index % palette.length],
         }));
         setData(formattedData);
@@ -47,6 +50,7 @@ export default function DoughnutChartEiCategory({ filters = {} }) {
 
   const legendItems = useMemo(() => {
     return data.map((item) => ({
+      id: item.id,
       label: item.label,
       value: item.value,
       color: item.color,
@@ -71,11 +75,21 @@ export default function DoughnutChartEiCategory({ filters = {} }) {
   }
 
   return (
-    <div className="team-performance-chart" style={{ width: '100%' }}>
-      <div className="team-performance-chart__legend" aria-label="Category distribution legend" style={{ marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+    <div className="team-performance-chart" style={{ width: '100%', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: '2rem', flexWrap: 'wrap' }}>
+      <div 
+        className="team-performance-chart__legend" 
+        aria-label="Category distribution legend" 
+        style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          gap: '0.75rem', 
+          minWidth: '200px',
+          flex: '1'
+        }}
+      >
         {legendItems.map((item) => (
           <button
-            key={item.label}
+            key={item.id}
             type="button"
             className={[
               'team-performance-chart__legend-item',
@@ -85,6 +99,7 @@ export default function DoughnutChartEiCategory({ filters = {} }) {
               .join(' ')}
             aria-pressed={!item.hidden}
             onClick={() => handleToggleLabel(item.label)}
+            style={{ justifyContent: 'flex-start', textAlign: 'left', width: '100%' }}
           >
             <span
               className="team-performance-chart__legend-swatch"
@@ -98,24 +113,24 @@ export default function DoughnutChartEiCategory({ filters = {} }) {
         ))}
       </div>
 
-      <Box sx={{ width: '100%', height: 300, display: 'flex', justifyContent: 'center' }}>
+      <Box sx={{ flex: '2', display: 'flex', justifyContent: 'center', minWidth: '500px' }}>
         {visibleData.length > 0 ? (
           <PieChart
             series={[
               {
-                innerRadius: 60,
-                outerRadius: 120,
-                paddingAngle: 5,
-                cornerRadius: 5,
+                innerRadius: 120,
+                outerRadius: 220,
+                paddingAngle: 4,
+                cornerRadius: 10,
                 startAngle: -90,
-                endAngle: 180,
-                cx: 150,
-                cy: 150,
+                endAngle: 270,
+                cx: 250,
+                cy: 250,
                 data: visibleData,
               },
             ]}
-            width={400}
-            height={300}
+            width={600}
+            height={500}
             hideLegend
           />
         ) : (
