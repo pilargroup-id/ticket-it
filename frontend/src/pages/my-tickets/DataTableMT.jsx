@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import DialogEditTicket from '../../components/dialog/DialogEditMT.jsx'
 import DialogFeedbackUser from '../../components/dialog/DialogFeedbackUser.jsx'
+import MobileCardMT from './MobileCardMT.jsx'
 
 import DataTable, {
   DataTableIdentity,
@@ -89,6 +90,13 @@ function DataTableMT({
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
   const [activeActionDialog, setActiveActionDialog] = useState(null)
   const [selectedTicket, setSelectedTicket] = useState(null)
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   const filteredRows = useMemo(
     () => getFilteredTicketRows(ticketRows, { searchQuery, dateRange, statusFilter }),
@@ -170,23 +178,38 @@ function DataTableMT({
 
   return (
     <div className="mtickets-table-shell">
-      <DataTable
-        className="mtickets-table"
-        rows={rows}
-        columns={columns}
-        getRowId={(ticket) => ticket.id ?? ticket.ticketCode}
-        tableLabel={tableLabel}
-        detail={{
-          columnLabel: 'Detail',
-          buttonLabel: 'Detail',
-          eyebrow: 'Ticket Code',
-          title: (ticket) => ticket.ticketCode,
-          hasIndicator: (ticket) => ticket.status === 'Resolved',
-        }}
-        actions={tableActions}
-        emptyMessage={emptyMessage}
-        pagination={pagination}
-      />
+      {isMobile ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px 0', overflowY: 'auto', maxHeight: 'calc(100vh - 260px)', paddingBottom: '80px' }}>
+          {rows.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '32px', border: '1px dashed #ddd', borderRadius: '12px', backgroundColor: '#fafafa' }}>
+              <div style={{ fontWeight: 'bold', marginBottom: '8px', color: '#333' }}>No data</div>
+              <div style={{ color: '#666', fontSize: '14px' }}>Belum ada data yang bisa ditampilkan.</div>
+            </div>
+          ) : (
+            rows.map((ticket) => (
+              <MobileCardMT key={ticket.id ?? ticket.ticketCode} ticket={ticket} />
+            ))
+          )}
+        </div>
+      ) : (
+        <DataTable
+          className="mtickets-table"
+          rows={rows}
+          columns={columns}
+          getRowId={(ticket) => ticket.id ?? ticket.ticketCode}
+          tableLabel={tableLabel}
+          detail={{
+            columnLabel: 'Detail',
+            buttonLabel: 'Detail',
+            eyebrow: 'Ticket Code',
+            title: (ticket) => ticket.ticketCode,
+            hasIndicator: (ticket) => ticket.status === 'Resolved',
+          }}
+          actions={tableActions}
+          emptyMessage={emptyMessage}
+          pagination={pagination}
+        />
+      )}
 
       <DialogEditTicket
         isOpen={activeActionDialog === 'edit'}

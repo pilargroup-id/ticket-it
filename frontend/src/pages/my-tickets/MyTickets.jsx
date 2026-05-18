@@ -10,6 +10,8 @@ import CardStatusMT from './CardStatusMT.jsx'
 import DataTableMT from './DataTableMT.jsx'
 import DialogCreateTicket from '../../components/dialog/DialogCreateMT.jsx'
 import DialogValidationAddFB from '../../components/dialog/DialogValidationAddFB.jsx'
+import MobilePillStatus from './MobilePillStatus.jsx'
+import ButtonMobileMT from '../../components/button/ButtonMobileMT.jsx'
 
 function MyTickets({ activePage, searchQuery, onLoadingChange }) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
@@ -23,6 +25,13 @@ function MyTickets({ activePage, searchQuery, onLoadingChange }) {
     startDate: '',
     endDate: '',
   })
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   useEffect(() => {
     let isMounted = true
@@ -90,11 +99,19 @@ function MyTickets({ activePage, searchQuery, onLoadingChange }) {
 
   return (
     <>
-      <CardStatusMT
-        activeStatus={statusFilter}
-        onStatusChange={setStatusFilter}
-        statusCounts={statusCounts}
-      />
+      {isMobile ? (
+        <MobilePillStatus
+          activeStatus={statusFilter}
+          onStatusChange={setStatusFilter}
+          statusCounts={statusCounts}
+        />
+      ) : (
+        <CardStatusMT
+          activeStatus={statusFilter}
+          onStatusChange={setStatusFilter}
+          statusCounts={statusCounts}
+        />
+      )}
 
       <section
         className="dashboard-panel users-table-card mytickets-table-card"
@@ -108,25 +125,38 @@ function MyTickets({ activePage, searchQuery, onLoadingChange }) {
           </div>
 
           <div className="users-table-card__actions">
-            <ButtonRangeDate label="Request Date" onChange={setDateRange} />
+            {!isMobile && <ButtonRangeDate label="Request Date" onChange={setDateRange} />}
 
-            <button
-              type="button"
-              className="users-table-card__action"
-              onClick={() => {
-                const hasPendingFeedback = ticketRows.some((ticket) => ticket.status === 'Resolved')
-                if (hasPendingFeedback) {
-                  setIsValidationDialogOpen(true)
-                } else {
-                  setIsCreateDialogOpen(true)
-                }
-              }}
-              aria-haspopup="dialog"
-              aria-expanded={isCreateDialogOpen || isValidationDialogOpen}
-            >
-              <Ticket01 size={18} aria-hidden="true" />
-              <span>Create Tickets</span>
-            </button>
+            {isMobile ? (
+              <ButtonMobileMT 
+                onClickCreate={() => {
+                  const hasPendingFeedback = ticketRows.some((ticket) => ticket.status === 'Resolved')
+                  if (hasPendingFeedback) {
+                    setIsValidationDialogOpen(true)
+                  } else {
+                    setIsCreateDialogOpen(true)
+                  }
+                }} 
+              />
+            ) : (
+              <button
+                type="button"
+                className="users-table-card__action"
+                onClick={() => {
+                  const hasPendingFeedback = ticketRows.some((ticket) => ticket.status === 'Resolved')
+                  if (hasPendingFeedback) {
+                    setIsValidationDialogOpen(true)
+                  } else {
+                    setIsCreateDialogOpen(true)
+                  }
+                }}
+                aria-haspopup="dialog"
+                aria-expanded={isCreateDialogOpen || isValidationDialogOpen}
+              >
+                <Ticket01 size={18} aria-hidden="true" />
+                <span>Create Tickets</span>
+              </button>
+            )}
           </div>
         </div>
 

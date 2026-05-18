@@ -431,7 +431,14 @@ function App() {
   const [activeActionDialog, setActiveActionDialog] = useState(null)
   const [selectedUser, setSelectedUser] = useState(null)
   const [isTransitioning, setIsTransitioning] = useState(false)
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const isInitialMount = useRef(true)
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   useEffect(() => {
     if (isInitialMount.current) {
@@ -673,7 +680,7 @@ function App() {
 
   return (
     <div className={shellClassName}>
-      <BackgroundMain />
+      {!isMobile && <BackgroundMain />}
 
       <Sidebar
         collapsed={sidebarCollapsed}
@@ -719,10 +726,10 @@ function App() {
         />
 
         <main
-          className={`dashboard-main${isTicketWorkspacePage ? ' dashboard-main--mytickets' : ''}`}
+          className={`dashboard-main${isTicketWorkspacePage && !isMobile ? ' dashboard-main--mytickets' : ''}`}
         >
           <div
-            className={`dashboard-content${isTicketWorkspacePage ? ' dashboard-content--mytickets' : ''}`}
+            className={`dashboard-content${isTicketWorkspacePage && !isMobile ? ' dashboard-content--mytickets' : ''}`}
           >
             {activePath !== '/MyTickets' && !isTeamPerformancePage && !isExecutiveInsightPage && !isProjectPerformancePage && !isMasterCategoryPage && !isCustomOverviewPage && (
               <section className="dashboard-overview" aria-label="Ringkasan dashboard">
