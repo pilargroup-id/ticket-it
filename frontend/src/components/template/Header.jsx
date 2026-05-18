@@ -253,17 +253,6 @@ function Header({
 
       <div className="header-content">
         <div className="header-left">
-          {showMenuButton ? (
-            <button
-              type="button"
-              className="header-menu-button"
-              aria-label="Open sidebar"
-              onClick={onMenuToggle}
-            >
-              <Menu01 size={20} />
-            </button>
-          ) : null}
-
           <div className="header-brand">
             <img src={logoPiagam} alt="Logo Piagam" className="header-brand-logo" />
           </div>
@@ -284,8 +273,18 @@ function Header({
             {renderBreadcrumb()}
           </nav>
 
-          {hasSearch || hasNotification || onRefresh ? (
+          {hasSearch || hasNotification || onRefresh || showMenuButton ? (
             <div className="header-toolbar">
+              {showMenuButton ? (
+                <button
+                  type="button"
+                  className="header-menu-button"
+                  aria-label="Open sidebar"
+                  onClick={onMenuToggle}
+                >
+                  <Menu01 size={20} />
+                </button>
+              ) : null}
               {hasSearch ? (
                 <label
                   className="header-search header-search--compact"

@@ -175,7 +175,9 @@ export function normalizeMyTicket(ticket = {}) {
   return {
     id: ticket?.id ?? ticketCode,
     ticketCode: ticketCode || '-',
+    categoryId: ticket?.category_id || '',
     category: categoryName || '-',
+    nama_pembuat: ticket?.nama_pembuat || '',
     requestor: requestorName || '-',
     problem: getFirstFilledText(ticket?.problem) || '-',
     status: formatTicketStatus(rawStatus),

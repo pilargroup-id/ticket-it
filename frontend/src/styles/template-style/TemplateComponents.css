@@ -4587,6 +4587,10 @@ select {
     align-items: stretch;
   }
 
+  .breadcrumb-nav[aria-label="Breadcrumb"] {
+    display: none;
+  }
+
   .breadcrumb-dropdown {
     left: 0;
     right: auto;

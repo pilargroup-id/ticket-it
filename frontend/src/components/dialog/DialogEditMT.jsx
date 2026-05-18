@@ -6,12 +6,13 @@ import { getStoredUser } from '../../services/auth.js'
 import SearchableDropdown from '../dropdown/SearchableDropdown.jsx'
 import { FileText01, XClose } from '../template/TemplateIcons.jsx'
 
-function DialogCreateTicket({
+function DialogEditTicket({
   isOpen = false,
-  eyebrow = 'Create Ticket',
-  title = 'Create Tickets',
+  eyebrow = 'Edit Ticket',
+  title = 'Edit',
+  ticket = null,
   onClose,
-  onCreated,
+  onUpdated,
 }) {
   const [categories, setCategories] = useState([])
   const [categoryId, setCategoryId] = useState('')
@@ -25,7 +26,8 @@ function DialogCreateTicket({
   const [errorMessage, setErrorMessage] = useState('')
 
   const authUser = getStoredUser()
-  const namaPembuat = authUser?.name ?? ''
+  const defaultNamaPembuat = authUser?.name ?? ''
+  const namaPembuat = ticket?.nama_pembuat || defaultNamaPembuat
 
   useEffect(() => {
     if (!isOpen) {
@@ -57,7 +59,7 @@ function DialogCreateTicket({
 
   // Reset form & handle Escape key
   useEffect(() => {
-    if (!isOpen) {
+    if (!isOpen || !ticket) {
       setCategoryId('')
       setCategorySearch('')
       setCategoryOpen(false)
@@ -70,6 +72,16 @@ function DialogCreateTicket({
       return undefined
     }
 
+    setCategoryId(ticket.categoryId || '')
+    setCategorySearch(ticket.category !== '-' ? ticket.category : '')
+    setCategoryOpen(false)
+    setProblem(ticket.problem || '')
+    setSelectedFile(null)
+    setSelectedFileName(ticket.image ? 'Gambar saat ini (Akan diganti jika upload baru)' : '')
+    setIsDragActive(false)
+    setIsSubmitting(false)
+    setErrorMessage('')
+
     const handleKeyDown = (event) => {
       if (event.key === 'Escape') {
         onClose?.()
@@ -81,7 +93,7 @@ function DialogCreateTicket({
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [isOpen, onClose])
+  }, [isOpen, ticket, onClose])
 
   const handleFileSelect = useCallback((file) => {
     if (file) {
@@ -127,6 +139,7 @@ function DialogCreateTicket({
 
     try {
       const formData = new FormData()
+      formData.append('_method', 'PUT') // Laravel spoofing for PUT with FormData
       formData.append('category_id', categoryId)
       formData.append('problem', problem.trim())
 
@@ -138,14 +151,14 @@ function DialogCreateTicket({
         formData.append('image', selectedFile)
       }
 
-      const response = await api.post('/user/ticket', formData)
+      const response = await api.post(`/user/ticket/${ticket.id}`, formData)
 
-      onCreated?.(response)
+      onUpdated?.(response)
       onClose?.()
     } catch (err) {
-      console.error('Failed to create ticket:', err)
+      console.error('Failed to update ticket:', err)
       setErrorMessage(
-        err?.data?.message || err?.message || 'Gagal membuat ticket. Silakan coba lagi.',
+        err?.data?.message || err?.message || 'Gagal mengubah ticket. Silakan coba lagi.',
       )
     } finally {
       setIsSubmitting(false)
@@ -166,14 +179,14 @@ function DialogCreateTicket({
         className="dashboard-popup register-user-popup mtickets-create-popup"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="dialog-create-ticket-title"
+        aria-labelledby="dialog-edit-ticket-title"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="dashboard-popup__header">
           <div>
             <p className="dashboard-popup__eyebrow">{eyebrow}</p>
-            <h2 className="dashboard-popup__title" id="dialog-create-ticket-title">
-              {title}
+            <h2 className="dashboard-popup__title" id="dialog-edit-ticket-title">
+              {title} {ticket?.ticket_code || ''}
             </h2>
           </div>
 
@@ -193,7 +206,7 @@ function DialogCreateTicket({
               <div className="register-user-popup__form">
                 <div className="register-user-popup__grid">
                   <SearchableDropdown
-                    id="ticket-category"
+                    id="ticket-category-edit"
                     label="Category"
                     placeholder="Cari category..."
                     value={categoryId}
@@ -206,11 +219,11 @@ function DialogCreateTicket({
                   />
 
                   <div className="register-user-popup__field">
-                    <label className="register-user-popup__label" htmlFor="ticket-nama-pembuat">
+                    <label className="register-user-popup__label" htmlFor="ticket-nama-pembuat-edit">
                       Nama Pembuat
                     </label>
                     <input
-                      id="ticket-nama-pembuat"
+                      id="ticket-nama-pembuat-edit"
                       type="text"
                       className="register-user-popup__input"
                       value={namaPembuat}
@@ -220,11 +233,11 @@ function DialogCreateTicket({
                   </div>
 
                   <div className="register-user-popup__field register-user-popup__field--full">
-                    <label className="register-user-popup__label" htmlFor="ticket-issue">
+                    <label className="register-user-popup__label" htmlFor="ticket-issue-edit">
                       Masalah
                     </label>
                     <textarea
-                      id="ticket-issue"
+                      id="ticket-issue-edit"
                       className="register-user-popup__input master-project-popup__textarea"
                       placeholder="Jelaskan permasalahan atau kebutuhan yang ingin diajukan."
                       value={problem}
@@ -239,12 +252,12 @@ function DialogCreateTicket({
               <div className="register-user-popup__section-header">
                 <p className="register-user-popup__label">Upload File</p>
                 <p className="register-user-popup__hint">
-                  Letakkan dokumen pendukung di area ini agar popup tetap ringkas.
+                  Letakkan dokumen pendukung di area ini agar popup tetap ringkas. (Opsional untuk ganti file)
                 </p>
               </div>
 
               <label
-                htmlFor="ticket-attachment"
+                htmlFor="ticket-attachment-edit"
                 className={`register-user-popup__upload mtickets-create-popup__upload${
                   isDragActive ? ' is-drag-active' : ''
                 }`}
@@ -253,7 +266,7 @@ function DialogCreateTicket({
                 onDrop={handleDrop}
               >
                 <input
-                  id="ticket-attachment"
+                  id="ticket-attachment-edit"
                   type="file"
                   className="register-user-popup__upload-input"
                   onChange={handleFileChange}
@@ -303,7 +316,7 @@ function DialogCreateTicket({
             onClick={handleSubmit}
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Membuat...' : 'Create'}
+            {isSubmitting ? 'Menyimpan...' : 'Simpan'}
           </button>
         </div>
       </div>
@@ -313,4 +326,4 @@ function DialogCreateTicket({
   return createPortal(dialogNode, document.body)
 }
 
-export default DialogCreateTicket
+export default DialogEditTicket

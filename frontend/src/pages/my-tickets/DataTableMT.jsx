@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import DialogEdit from '../../components/dialog/DialogEdit.jsx'
+import DialogEditTicket from '../../components/dialog/DialogEditMT.jsx'
 import DialogFeedbackUser from '../../components/dialog/DialogFeedbackUser.jsx'
 
 import DataTable, {
@@ -112,6 +112,7 @@ function DataTableMT({
   }
 
   const handleEditConfirm = () => {
+    refreshData?.()
     closeActionDialog()
   }
 
@@ -187,13 +188,11 @@ function DataTableMT({
         pagination={pagination}
       />
 
-      <DialogEdit
+      <DialogEditTicket
         isOpen={activeActionDialog === 'edit'}
-        eyebrow="Edit Ticket"
-        title={`Edit ${selectedTicketName}`}
-        user={dialogTicket}
+        ticket={selectedTicket}
         onClose={closeActionDialog}
-        onConfirm={handleEditConfirm}
+        onUpdated={handleEditConfirm}
       />
 
       <DialogFeedbackUser

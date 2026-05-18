@@ -761,7 +761,7 @@ function App() {
             ) : isProjectPerformancePage ? (
               <ProjectPerformence />
             ) : isMasterCategoryPage ? (
-              <MasterCategory />
+              <MasterCategory searchQuery={searchQuery} />
             ) : isTablePage ? (
               <section className="dashboard-panel users-table-card" aria-label={activePage.title}>
                 <div className="users-table-card__header">
