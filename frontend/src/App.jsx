@@ -689,6 +689,7 @@ function App() {
         activePath={activePath}
         userName={sessionUser?.name ?? ''}
         userRole={sessionUser?.job_position ?? sessionUser?.role ?? ''}
+        role={sessionUser?.role ?? ''}
         onToggleCollapse={() => setSidebarCollapsed((currentValue) => !currentValue)}
         onCloseMobile={() => setMobileSidebarOpen(false)}
       />
