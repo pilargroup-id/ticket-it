@@ -433,6 +433,7 @@ function App() {
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const isInitialMount = useRef(true)
+  const isAdmin = sessionUser?.role?.toLowerCase() === 'admin'
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768)
@@ -474,6 +475,15 @@ function App() {
 
     initAuth()
   }, [])
+
+  useEffect(() => {
+    if (isInitializing) return
+
+    if (sessionUser && !isAdmin && activePath !== '/MyTickets') {
+      window.history.replaceState({}, '', '/MyTickets')
+      setActivePath('/MyTickets')
+    }
+  }, [isInitializing, sessionUser, activePath, isAdmin])
 
   useEffect(() => {
     const handleRouteChange = () => {
@@ -757,23 +767,23 @@ function App() {
                     searchQuery={searchQuery}
                     onLoadingChange={setIsPageLoading}
                   />
-                ) : isTicketsOverviewPage ? (
+                ) : (isTicketsOverviewPage && isAdmin) ? (
                   <TicketsOverview
                     activePage={activePage}
                     searchQuery={searchQuery}
                     onLoadingChange={setIsPageLoading}
                   />
-                ) : isProjectsOverviewPage ? (
+                ) : (isProjectsOverviewPage && isAdmin) ? (
                   <ProjectsOverview activePage={activePage} searchQuery={searchQuery} />
-                ) : isTeamPerformancePage ? (
+                ) : (isTeamPerformancePage && isAdmin) ? (
                   <TeamPerformence />
-                ) : isExecutiveInsightPage ? (
+                ) : (isExecutiveInsightPage && isAdmin) ? (
                   <ExecutiveInsight />
-                ) : isProjectPerformancePage ? (
+                ) : (isProjectPerformancePage && isAdmin) ? (
                   <ProjectPerformence />
-                ) : isMasterCategoryPage ? (
+                ) : (isMasterCategoryPage && isAdmin) ? (
                   <MasterCategory searchQuery={searchQuery} />
-                ) : isTablePage ? (
+                ) : (isTablePage && isAdmin) ? (
                   <section className="dashboard-panel users-table-card" aria-label={activePage.title}>
                     <div className="users-table-card__header">
                       <div>
@@ -840,7 +850,7 @@ function App() {
                       />
                     )}
                   </section>
-                ) : isChartPage ? (
+                ) : (isChartPage && isAdmin) ? (
                   <section className="chart-page" aria-label="Chart">
                     <div className="chart-grid">
                       {chartViews.map(({ title, eyebrow, Component, wide }) => (
