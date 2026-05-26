@@ -433,7 +433,7 @@ function App() {
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const isInitialMount = useRef(true)
-  const isAdmin = sessionUser?.role?.toLowerCase() === 'admin'
+  const isAdmin = sessionUser?.is_admin === true || sessionUser?.department_id === 8
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768)
@@ -459,17 +459,37 @@ function App() {
     async function initAuth() {
       if (import.meta.env.DEV) {
         try {
-          const username = import.meta.env.VITE_DEV_MOCK_USERNAME || import.meta.env.VITE_MOCK_USERNAME || 'bayu'
-          const password = import.meta.env.VITE_DEV_MOCK_PASSWORD || import.meta.env.VITE_MOCK_PASSWORD || 'password123'
+          const username = import.meta.env.VITE_DEV_MOCK_USERNAME || 'bayu'
+          const password = import.meta.env.VITE_DEV_MOCK_PASSWORD || 'password123'
           const result = await loginWithDevCredentials({ username, password })
-
           if (result?.session?.user) {
             setSessionUser(result.session.user)
           }
         } catch (error) {
           console.error('Dev auto-login failed:', error)
         }
+      } else {
+        // Production: cek token dari URL (redirect dari PG)
+        const params = new URLSearchParams(window.location.search)
+        const token = params.get('token')
+
+        if (token) {
+          const session = await consumeSsoSuccessParams()
+          if (session?.user) {
+            setSessionUser(session.user)
+          }
+        } else {
+          // Tidak ada token di URL, cek localStorage
+          const storedUser = getStoredUser()
+          if (!storedUser) {
+            // Tidak ada session → redirect ke PG
+            window.location.assign('https://pilargroup.id/dashboard?return_url=' + encodeURIComponent(window.location.origin))
+            return
+          }
+          setSessionUser(storedUser)
+        }
       }
+
       setIsInitializing(false)
     }
 
