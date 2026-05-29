@@ -160,6 +160,7 @@ function Sidebar({
   userName = '',
   userRole = '',
   role = '',
+  isAdmin = false,
   primaryItems = primaryNavigationItems,
   secondaryItems = secondaryNavigationItems,
   onAction,
@@ -169,12 +170,11 @@ function Sidebar({
   const [expandedGroups, setExpandedGroups] = useState({})
   const initials = getInitials(userName)
   const filteredPrimaryItems = useMemo(() => {
-    const isAdmin = role?.toLowerCase() === 'admin'
     if (isAdmin) {
       return primaryItems
     }
     return primaryItems.filter((item) => item.id === 'my-tickets' || item.label === 'My Tickets')
-  }, [primaryItems, role])
+  }, [primaryItems, isAdmin])
   const activeExpandedGroups = useMemo(
     () => getInitiallyExpandedGroups([...filteredPrimaryItems, ...secondaryItems], activePath),
     [activePath, filteredPrimaryItems, secondaryItems],
